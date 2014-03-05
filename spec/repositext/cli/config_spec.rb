@@ -133,21 +133,37 @@ describe Repositext::Cli::Config do
   end
 
   describe '#compute_glob_pattern' do
-    before do
-      config.add_base_dir(:one_dir, '/dir/1/')
-      config.add_base_dir(:two_dir, '/dir/2/')
-      config.add_file_pattern(:one_files, '**/*.ext1')
-      config.add_file_pattern(:two_files, '**/*.ext2')
-    end
-    [
-      ['one_dir.one_files', '/dir/1/**/*.ext1'],
-      ['two_dir.two_files', '/dir/2/**/*.ext2'],
-      ['one_dir', '/dir/1/'],
-    ].each do |(file_spec, xpect)|
-      it "handles '#{ file_spec }'" do
-        config.compute_glob_pattern(file_spec).must_equal xpect
+
+    describe 'named base_dir and file_pattern from Rtfile as file_spec' do
+      before do
+        config.add_base_dir(:one_dir, '/dir/1/')
+        config.add_base_dir(:two_dir, '/dir/2/')
+        config.add_file_pattern(:one_files, '**/*.ext1')
+        config.add_file_pattern(:two_files, '**/*.ext2')
+      end
+      [
+        ['one_dir/one_files', '/dir/1/**/*.ext1'],
+        ['two_dir/two_files', '/dir/2/**/*.ext2'],
+        ['one_dir', '/dir/1/'],
+      ].each do |(file_spec, xpect)|
+        it "handles '#{ file_spec }'" do
+          config.compute_glob_pattern(file_spec).must_equal xpect
+        end
       end
     end
+
+    describe 'glob pattern as file_spec' do
+      [
+        '/dir1/*',
+        '/dir1/dir2/**/*.at',
+        '/dir1/dir2/file1.txt',
+      ].each do |glob_pattern|
+        it "handles '#{ glob_pattern }'" do
+          config.compute_glob_pattern(glob_pattern).must_equal glob_pattern
+        end
+      end
+    end
+
   end
 
   describe '#get_config_val' do

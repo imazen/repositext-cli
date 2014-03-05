@@ -80,15 +80,25 @@ class Repositext
       end
 
       # Computes a glob pattern from file spec
-      # @param[String] file_spec a file specification in the form of e.g., 'master_dir.at_files'
+      # @param[String] file_spec a file specification in one of two formats:
+      #     1) Named base_dir and file_pattern from Rtfile, e.g., 'master_dir/at_files'
+      #     2) Dir.glob pattern, e.g., '/dir1/dir2/**/*.at'
       # @return[String] a file pattern that can be passed to Dir.glob
       def compute_glob_pattern(file_spec)
-        bd = segments.detect { |e| e =~ /_dir\z/ } # e.g., 'master_dir'
-        fp = segments.detect { |e| e =~ /_files\z/ } # e.g., 'at_files'
         segments = file_spec.split('/')
         r = ''
-        r << base_dir(bd)  if bd
-        r << file_pattern(fp)  if fp
+        if segments.all? { |e| e =~ /_(dir|files)\z/ }
+          # file_spec consists of named base_dir and/or file_pattern
+          bd = segments.detect { |e| e =~ /_dir\z/ } # e.g., 'master_dir'
+          fp = segments.detect { |e| e =~ /_files\z/ } # e.g., 'at_files'
+          r << base_dir(bd)  if bd
+          r << file_pattern(fp)  if fp
+        else
+          # interpret file_spec as glob pattern.
+          # NOTE: this doesn't necessarily have to contain '*'. It could be the
+          # path to a single file.
+          r = file_spec
+        end
         r
       end
 
