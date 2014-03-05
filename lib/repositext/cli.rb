@@ -1,5 +1,4 @@
 class Repositext
-
   class Cli < Thor
 
     class RtfileError < RuntimeError; end

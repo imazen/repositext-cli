@@ -52,7 +52,7 @@ class Repositext
       # either pattern_string or pattern_block
       # @param[String, Symbol] name the name of the pattern by which it will be referenced
       # @param[String, optional] pattern_string the file pattern as string
-      # @param[Proc] block a block that returns the file pattern as string
+      # @param[Proc] pattern_block a block that returns the file pattern as string
       def file_pattern(name, pattern_string = nil, &pattern_block)
         if block_given?
           config.add_file_pattern(name, pattern_block.call)
