@@ -85,7 +85,7 @@ class Repositext
       #     2) Dir.glob pattern, e.g., '/dir1/dir2/**/*.at'
       # @return[String] a file pattern that can be passed to Dir.glob
       def compute_glob_pattern(file_spec)
-        segments = file_spec.split('/')
+        segments = file_spec.split(Repositext::Cli::FILE_SPEC_DELIMITER)
         r = ''
         if segments.all? { |e| e =~ /_(dir|files)\z/ }
           # file_spec consists of named base_dir and/or file_pattern

@@ -3,6 +3,8 @@ class Repositext
 
     class RtfileError < RuntimeError; end
 
+    FILE_SPEC_DELIMITER = '/'
+
     include Thor::Actions
     include Cli::RtfileDsl
     include Cli::LongDescriptionsForCommands
