@@ -39,18 +39,18 @@ class Repositext
 
       def import_docx_specific_steps(options)
         # convert_docx_to_???(options)
-        # validate_utf8_encoding(options.merge(input: 'import_docx_dir.???_files'))
+        # validate_utf8_encoding(options.merge(input: 'import_docx_dir/???_files'))
       end
 
       def import_folio_xml_specific_steps(options)
         convert_folio_xml_to_at(options)
-        validate_utf8_encoding(options.merge(input: 'import_folio_xml_dir.repositext_files'))
+        validate_utf8_encoding(options.merge(input: 'import_folio_xml_dir/repositext_files'))
         fix_folio_typographical_chars(options)
       end
 
       def import_idml_specific_steps(options)
         convert_idml_to_at(options)
-        validate_utf8_encoding(options.merge(input: 'import_idml_dir.repositext_files'))
+        validate_utf8_encoding(options.merge(input: 'import_idml_dir/repositext_files'))
       end
 
       # Specifies all shared steps that need to run after each import

@@ -85,9 +85,9 @@ class Repositext
       # @param[String] file_spec a file specification in the form of e.g., 'master_dir.at_files'
       # @return[String] a file pattern that can be passed to Dir.glob
       def compute_glob_pattern(file_spec)
-        segments = file_spec.split('.')
         bd = segments.detect { |e| e =~ /_dir\z/ } # e.g., 'master_dir'
         fp = segments.detect { |e| e =~ /_files\z/ } # e.g., 'at_files'
+        segments = file_spec.split('/')
         r = ''
         r << base_dir(bd)  if bd
         r << file_pattern(fp)  if fp
