@@ -104,6 +104,26 @@ class Repositext
         r
       end
 
+      # Computes a hash with validation file specs from input_file_specs
+      # @param[Hash] input_file_specs this hash will be transformed into a hash
+      #     that can be passed to a validation as file_specs.
+      def compute_validation_file_specs(input_file_specs)
+        input_file_specs.inject({}) { |m,(fs_name, fs_string)|
+          base_dir, file_pattern = fs_string.split(Repositext::Cli::FILE_SPEC_DELIMITER).compact
+          if base_dir.nil? || file_pattern.nil?
+            raise ArgumentError.new("file_spec requires both base_dir and file_pattern: #{ fs_string.inspect } in #{ input_file_specs.inspect }")
+          end
+          if base_dir !~ /_dir\z/
+            raise ArgumentError.new("base_dir is not valid: #{ base_dir.inspect }")
+          end
+          if file_pattern !~ /_files\z/
+            raise ArgumentError.new("file_spec is not valid: #{ file_pattern.inspect }")
+          end
+          m[fs_name] = [base_dir(base_dir), file_pattern(file_pattern)]
+          m
+        }
+      end
+
     private
 
       # Returns a key's value from container. Raises if an unknown key is requested.

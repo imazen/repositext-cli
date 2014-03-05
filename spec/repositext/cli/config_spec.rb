@@ -179,4 +179,37 @@ describe Repositext::Cli::Config do
     end
   end
 
+  describe '#compute_validation_file_specs' do
+    before do
+      config.add_base_dir(:one_dir, '/dir/1/')
+      config.add_base_dir(:two_dir, '/dir/2/')
+      config.add_file_pattern(:one_files, '**/*.ext1')
+      config.add_file_pattern(:two_files, '**/*.ext2')
+    end
+    [
+      [{ primary: 'one_dir/one_files' }, { primary: ['/dir/1/', '**/*.ext1'] }]
+    ].each_with_index do |(input_file_specs, xpect), idx|
+      it "handles scenario #{ idx + 1 }" do
+        config.compute_validation_file_specs(input_file_specs).must_equal xpect
+      end
+    end
+
+    it "raises if given invalid file_specs" do
+      proc{
+        config.compute_validation_file_specs(primary: 'without_forward_slash')
+      }.must_raise ArgumentError
+    end
+
+    it "raises if given invalid base_dir" do
+      proc{
+        config.compute_validation_file_specs(primary: 'invalid_base_dir_x/file_pattern_files')
+      }.must_raise ArgumentError
+    end
+
+    it "raises if given invalid file_pattern" do
+      proc{
+        config.compute_validation_file_specs(primary: 'base_dir/invalid_file_pattern_x')
+      }.must_raise ArgumentError
+    end
+  end
 end
