@@ -4,13 +4,6 @@ describe Repositext::Cli::Config do
 
   let(:config) { Repositext::Cli::Config.new }
 
-  describe '#rtfile_dir' do
-    it "has an accessor" do
-      config.rtfile_dir = '/rtfile/dir/'
-      config.rtfile_dir.must_equal '/rtfile/dir/'
-    end
-  end
-
   describe '#add_base_dir' do
     it "adds a base dir" do
       config.add_base_dir(:test_dir, 'test')

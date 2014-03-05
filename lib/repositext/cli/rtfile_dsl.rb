@@ -35,7 +35,6 @@ class Repositext
       # @param[String, optional] contents allows passing of Rtfile contents as string, for testing.
       def eval_rtfile(rtfile, contents = nil)
         contents ||= File.open(rtfile, "rb") { |f| f.read }
-        config.rtfile_dir = rtfile ? File.dirname(rtfile) : ''
         instance_eval(contents, rtfile.to_s, 1)
       rescue SyntaxError => e
         syntax_msg = e.message.gsub("#{ rtfile.to_s }:", 'on line ')
@@ -47,6 +46,22 @@ class Repositext
       end
 
       # DSL methods
+
+      # Used in Rtfile to define a base directory to be used by Dir.glob. Requires
+      # either dir_string or dir_block
+      # @param[String, Symbol] name the name of the dir by which it will be referenced
+      # @param[String, optional] dir_string the base dir as string
+      # @param[Proc] dir_block a block that returns the base dir as string
+      def base_dir(name, dir_string = nil, &dir_block)
+        if block_given?
+          config.add_base_dir(name, dir_block.call)
+        elsif dir_string
+          config.add_base_dir(name, dir_string)
+        else
+          raise(RtfileError, "You must provide either dir_string or dir_block arguments to base_dir")
+        end
+        nil
+      end
 
       # Used in Rtfile to define a file pattern to be used by Dir.glob. Requires
       # either pattern_string or pattern_block

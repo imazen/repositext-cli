@@ -3,8 +3,6 @@ class Repositext
   class Cli
     class Config
 
-      attr_accessor :rtfile_dir
-
       def initialize
         @base_dirs = {}
         @file_patterns = {}
