@@ -113,6 +113,7 @@ class Repositext
     desc 'validate SPEC', 'Validates files'
     long_desc long_description_for_validate
     # @param[String] command_spec Specification of the operation
+    # NOTE: --input option can only use named file_specs, not dir.glob patterns.
     def validate(command_spec)
       self.send("validate_#{ command_spec }", options)
     end

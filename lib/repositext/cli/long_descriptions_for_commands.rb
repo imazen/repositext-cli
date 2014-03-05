@@ -102,8 +102,10 @@ class Repositext
         def long_description_for_validate
           %(
             Validates files. Uses Profiles to determine which validations to run.
-            The validate command usually requires the -input option since it
-            has no defaults.
+            The validate command usually requires the --input option since it
+            has no defaults. The --input option for validation has to use a named
+            file spec like 'master_dir/at_files' and cannot use a dir.glob pattern
+            since it has to extract the base_dir and file_pattern parts.
 
             Available SPECs:
 
