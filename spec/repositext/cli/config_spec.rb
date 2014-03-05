@@ -6,16 +6,20 @@ describe Repositext::Cli::Config do
 
   describe '#add_base_dir' do
     it "adds a base dir" do
-      config.add_base_dir(:test_dir, 'test')
-      config.base_dir(:test_dir).must_equal 'test'
+      config.add_base_dir(:test_dir, 'test/')
+      config.base_dir(:test_dir).must_equal 'test/'
     end
     it "converts name to symbol" do
-      config.add_base_dir('test_dir', 'test')
-      config.base_dir(:test_dir).must_equal 'test'
+      config.add_base_dir('test_dir', 'test/')
+      config.base_dir(:test_dir).must_equal 'test/'
     end
     it "converts base_dir to string" do
-      config.add_base_dir(:test_dir, :test)
-      config.base_dir(:test_dir).must_equal 'test'
+      config.add_base_dir(:test_dir, :'test/')
+      config.base_dir(:test_dir).must_equal 'test/'
+    end
+    it "adds a trailing slash if none is present" do
+      config.add_base_dir(:test_dir, 'test')
+      config.base_dir(:test_dir).must_equal 'test/'
     end
     it "raises an ArgumentError if name does not end with '_dir'" do
       proc{ config.add_base_dir(:test, :test) }.must_raise ArgumentError
@@ -72,12 +76,12 @@ describe Repositext::Cli::Config do
 
   describe '#base_dir' do
     it "returns a specified base_dir" do
-      config.add_base_dir(:test_dir, 'test')
-      config.base_dir(:test_dir).must_equal 'test'
+      config.add_base_dir(:test_dir, 'test/')
+      config.base_dir(:test_dir).must_equal 'test/'
     end
     it "converts name to symbol" do
-      config.add_base_dir(:test_dir, :test)
-      config.base_dir('test_dir').must_equal 'test'
+      config.add_base_dir(:test_dir, 'test/')
+      config.base_dir('test_dir').must_equal 'test/'
     end
     it "raises on unknown name" do
       proc { config.base_dir(:unknown_key) }.must_raise ArgumentError

@@ -18,7 +18,9 @@ class Repositext
         if name.to_s !~ /_dir\z/
           raise ArgumentError.new("A base dir name must end with '_dir'")
         end
-        @base_dirs[name.to_sym] = base_dir_string.to_s
+        # guarantee trailing slash
+        bd = base_dir_string.to_s.gsub(/\/\z/, '') + '/'
+        @base_dirs[name.to_sym] = bd
       end
 
       # Use this method in DSL methods to add a file pattern to config
