@@ -39,7 +39,7 @@ class Repositext
 
       def import_docx_specific_steps(options)
         # convert_docx_to_???(options)
-        # validate_utf8_encoding(options.merge(input: 'import_docx_dir/???_files'))
+        # validate_utf8_encoding(options.merge(input: 'import_docx_dir/repositext_files'))
       end
 
       def import_folio_xml_specific_steps(options)
