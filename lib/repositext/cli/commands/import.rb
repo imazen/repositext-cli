@@ -44,8 +44,8 @@ class Repositext
 
       def import_folio_xml_specific_steps(options)
         convert_folio_xml_to_at(options)
-        validate_utf8_encoding(options.merge(input: 'import_folio_xml_dir/repositext_files'))
         fix_folio_typographical_chars(options)
+        validate_folio_xml_import(options)
       end
 
       def import_idml_specific_steps(options)
