@@ -13,17 +13,33 @@ class Repositext
 
       # Validates all files related to folio xml import
       def validate_folio_xml_import(options)
-        vfs = config.compute_validation_file_specs(
+        options = { :run_validations => [:pre_import, :post_import] }.merge(options)
+        file_specs = config.compute_validation_file_specs(
           folio_xml_sources: options[:input] || 'import_folio_xml_dir/xml_files',
           imported_at_files: 'import_folio_xml_dir/at_files',
           imported_repositext_files: 'import_folio_xml_dir/repositext_files',
         )
-        Repositext::Validation.new('Utf8Encoding', vfs, options).run
-        Repositext::Validation.new(
-          'AtFiles',
-          config.compute_validation_file_specs(primary: 'import_folio_xml_dir/at_files'),
-          options
-        ).run
+
+        if options[:run_validations].include?(:pre_import)
+          Repositext::Validation.new(
+            'Utf8Encoding',
+            { :primary => file_specs[:folio_xml_sources] },
+            options
+          ).run
+        end
+
+        if options[:run_validations].include?(:post_import)
+          Repositext::Validation.new(
+            'Utf8Encoding',
+            { :primary => file_specs[:imported_repositext_files] },
+            options
+          ).run
+          Repositext::Validation.new(
+            'AtFiles',
+            { :primary => file_specs[:imported_at_files] },
+            options
+          ).run
+        end
       end
 
       # Validates that all files in file set are UTF8 encoded

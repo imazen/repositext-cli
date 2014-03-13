@@ -43,9 +43,10 @@ class Repositext
       end
 
       def import_folio_xml_specific_steps(options)
+        validate_folio_xml_import({ :run_validations => [:pre_import] }.merge(options))
         convert_folio_xml_to_at(options)
         fix_folio_typographical_chars(options)
-        validate_folio_xml_import(options)
+        validate_folio_xml_import({ :run_validations => [:post_import] }.merge(options))
       end
 
       def import_idml_specific_steps(options)
