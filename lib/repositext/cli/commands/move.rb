@@ -4,12 +4,12 @@ class Repositext
 
     private
 
-      def move_staging_to_master(options)
-        input_file_spec = options[:input] || 'staging_dir/at_files'
+      def move_staging_to_content(options)
+        input_file_spec = options['input'] || 'staging_dir/at_files'
         input_base_dir_name, input_file_pattern_name = input_file_spec.split(
           Repositext::Cli::FILE_SPEC_DELIMITER
         )
-        output_base_dir = options[:output] || config.base_dir(:master_dir)
+        output_base_dir = options['output'] || config.base_dir(:content_dir)
 
         Repositext::Cli::Utils.move_files(
           config.base_dir(input_base_dir_name),
