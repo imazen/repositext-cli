@@ -11,6 +11,24 @@ class Repositext
         Repositext::Validation.new('AtFiles', vfs, options).run
       end
 
+      # Validates all files in /content
+      def validate_content(options)
+        file_specs = config.compute_validation_file_specs(
+          at_files: 'content_dir/at_files',
+          repositext_files: 'content_dir/repositext_files'
+        )
+        # Repositext::Validation.new(
+        #   'Utf8Encoding',
+        #   { :primary => file_specs[:repositext_files] },
+        #   options
+        # ).run
+        Repositext::Validation.new(
+          'AtFiles',
+          { :primary => file_specs[:at_files] },
+          options
+        ).run
+      end
+
       # Validates all files related to folio xml import
       def validate_folio_xml_import(options)
         options = { :run_validations => [:pre_import, :post_import] }.merge(options)
