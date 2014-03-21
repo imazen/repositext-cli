@@ -112,10 +112,20 @@ class Repositext
 
     desc 'validate SPEC', 'Validates files'
     long_desc long_description_for_validate
+    method_option :report_file,
+                  :type => :string,
+                  :default => nil,
+                  :desc => 'Specifies a file name to which a validation report will be written.'
     # @param[String] command_spec Specification of the operation
     # NOTE: --input option can only use named file_specs, not dir.glob patterns.
     def validate(command_spec)
-      self.send("validate_#{ command_spec }", options)
+      if options['report_file']
+        new_options = options.dup # Thor options are a frozen Hash
+        new_options['report_file'] = config.compute_glob_pattern(options['report_file'])
+      else
+        new_options = options
+      end
+      self.send("validate_#{ command_spec }", new_options)
     end
 
 

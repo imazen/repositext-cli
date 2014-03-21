@@ -45,8 +45,15 @@ class Repositext
       def import_folio_xml_specific_steps(options)
         validate_folio_xml_import({ 'run_validations' => %w[pre_import] }.merge(options))
         convert_folio_xml_to_at(options)
-        fix_folio_typographical_chars(options)
-        validate_folio_xml_import({ :run_validations => [:post_import] }.merge(options))
+        fix_convert_folio_typographical_chars(options)
+        validate_folio_xml_import(
+          {
+            'run_validations' => %w[post_import],
+            'report_file' => config.compute_glob_pattern(
+              options['report_file'] || 'import_folio_xml_dir/validation_report_file'
+            )
+          }.merge(options)
+        )
       end
 
       def import_idml_specific_steps(options)
@@ -60,7 +67,14 @@ class Repositext
         # that have actually changed.
         merge_record_marks_from_folio_xml_at_into_idml_at(options)
         fix_adjust_merged_record_mark_positions(options)
-        move_staging_to_master(options)
+        move_staging_to_content(options)
+        validate_content(
+          {
+            'report_file' => config.compute_glob_pattern(
+              options['report_file'] || 'content_dir/validation_report_file'
+            )
+          }.merge(options)
+        )
       end
 
     end
