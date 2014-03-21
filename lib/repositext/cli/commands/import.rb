@@ -4,7 +4,7 @@ class Repositext
 
     private
 
-      # Import from all sources and merge into master
+      # Import from all sources and merge into /content
       def import_all(options)
         import_docx_specific_steps(options)
         import_folio_xml_specific_steps(options)
@@ -12,19 +12,19 @@ class Repositext
         import_shared_steps(options)
       end
 
-      # Import DOCX and merge into master
+      # Import DOCX and merge into /content
       def import_docx(options)
         import_docx_specific_steps(options)
         import_shared_steps(options)
       end
 
-      # Import FOLIO XML and merge into master
+      # Import FOLIO XML and merge into /content
       def import_folio_xml(options)
         import_folio_xml_specific_steps(options)
         import_shared_steps(options)
       end
 
-      # Import IDML and merge into master
+      # Import IDML and merge into /content
       def import_idml(options)
         import_idml_specific_steps(options)
         import_shared_steps(options)

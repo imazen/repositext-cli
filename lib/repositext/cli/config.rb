@@ -83,7 +83,7 @@ class Repositext
 
       # Computes a glob pattern from file spec
       # @param[String] file_spec a file specification in one of two formats:
-      #     1) Named base_dir and file_pattern from Rtfile, e.g., 'master_dir/at_files'
+      #     1) Named base_dir and file_pattern from Rtfile, e.g., 'content_dir/at_files'
       #     2) Dir.glob pattern, e.g., '/dir1/dir2/**/*.at'
       # @return[String] a file pattern that can be passed to Dir.glob
       def compute_glob_pattern(file_spec)

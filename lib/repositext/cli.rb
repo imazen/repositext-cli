@@ -103,7 +103,7 @@ class Repositext
     end
 
 
-    desc 'sync SPEC', 'Syncs data between different file types in master'
+    desc 'sync SPEC', 'Syncs data between different file types in /content'
     long_desc long_description_for_sync
     # @param[String] command_spec Specification of the operation
     def sync(command_spec)
@@ -122,14 +122,14 @@ class Repositext
     # Higher level commands
 
 
-    desc 'export SPEC', 'Exports files from /master'
+    desc 'export SPEC', 'Exports files from /content'
     long_desc long_description_for_export
     # @param[String] command_spec Specification of the operation
     def export(command_spec)
       self.send("export_#{ command_spec }", options)
     end
 
-    desc 'import SPEC', 'Imports files and merges changes into master'
+    desc 'import SPEC', 'Imports files and merges changes into /content'
     long_desc long_description_for_import
     # @param[String] command_spec Specification of the operation
     def import(command_spec)

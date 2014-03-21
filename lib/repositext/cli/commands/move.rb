@@ -16,7 +16,7 @@ class Repositext
           config.file_pattern(input_file_pattern_name),
           output_base_dir,
           /\.at\z/,
-          "Moving AT files from staging to master",
+          "Moving AT files from /staging to /content",
           options
         )
       end

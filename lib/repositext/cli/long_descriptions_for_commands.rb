@@ -84,13 +84,13 @@ class Repositext
 
             Available SPECs:
 
-            staging_to_master - moves AT files from staging to master
+            staging_to_content - moves AT files from /staging to /content
           )
         end
 
         def long_description_for_sync
           %(
-            Syncs data between different file types in master.
+            Syncs data between different file types in /content.
             Applies a suspension-based operation between files of different types.
 
             Available SPECs:
@@ -104,7 +104,7 @@ class Repositext
             Validates files. Uses Profiles to determine which validations to run.
             The validate command usually requires the --input option since it
             has no defaults. The --input option for validation has to use a named
-            file spec like 'master_dir/at_files' and cannot use a dir.glob pattern
+            file spec like 'content_dir/at_files' and cannot use a dir.glob pattern
             since it has to extract the base_dir and file_pattern parts.
 
             Available SPECs:
@@ -119,7 +119,7 @@ class Repositext
 
         def long_description_for_export
           %(
-            Exports files from /master, performing all steps required to generate
+            Exports files from /content, performing all steps required to generate
             files of the desired output file type.
 
             Available SPECs:
@@ -131,16 +131,16 @@ class Repositext
         def long_description_for_import
           %(
             Imports files from a source, performs all steps required to merge changes
-            into master
+            into /content
 
             Available SPECs:
 
             all - Imports from all sources (FOLIO XML, IDML) and merges updates
-            into master.
+            into /content.
 
-            folio_xml - Imports from FOLIO XML and merges updates into master.
+            folio_xml - Imports from FOLIO XML and merges updates into /content.
 
-            idml - Imports from IDML and merges updates into master.
+            idml - Imports from IDML and merges updates into /content.
           )
         end
 

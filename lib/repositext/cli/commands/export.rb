@@ -4,7 +4,7 @@ class Repositext
 
     private
 
-      # Export PT files in /master to ICML
+      # Export PT files in /content to ICML
       def export_to_icml(options)
       end
 
