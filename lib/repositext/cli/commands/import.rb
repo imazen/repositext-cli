@@ -45,6 +45,7 @@ class Repositext
       def import_folio_xml_specific_steps(options)
         validate_folio_xml_import({ 'run_validations' => %w[pre_import] }.merge(options))
         convert_folio_xml_to_at(options)
+        fix_remove_underscores_inside_folio_paragraph_numbers(options)
         fix_convert_folio_typographical_chars(options)
         validate_folio_xml_import(
           {
@@ -67,6 +68,7 @@ class Repositext
         # that have actually changed.
         merge_record_marks_from_folio_xml_at_into_idml_at(options)
         fix_adjust_merged_record_mark_positions(options)
+        fix_convert_abbreviations_to_lower_case(options) # run after merge_record_marks...
         move_staging_to_content(options)
         validate_content(
           {
