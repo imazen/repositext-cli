@@ -116,6 +116,10 @@ class Repositext
                   :type => :string,
                   :default => nil,
                   :desc => 'Specifies a file name to which a validation report will be written.'
+    method_option :run_validations,
+                  :type => :array,
+                  :default => %w[pre_import post_import],
+                  :desc => 'Specifies which validations to run. Possible values: %w[pre_import post_import]'
     # @param[String] command_spec Specification of the operation
     # NOTE: --input option can only use named file_specs, not dir.glob patterns.
     def validate(command_spec)

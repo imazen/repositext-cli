@@ -31,7 +31,6 @@ class Repositext
 
       # Validates all files related to folio xml import
       def validate_folio_xml_import(options)
-        options = { :run_validations => [:pre_import, :post_import] }.merge(options)
         file_specs = config.compute_validation_file_specs(
           folio_xml_sources: options['input'] || 'import_folio_xml_dir/xml_files',
           imported_at_files: 'import_folio_xml_dir/at_files',
