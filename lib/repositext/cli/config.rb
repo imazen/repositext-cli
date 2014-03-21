@@ -3,6 +3,9 @@ class Repositext
   class Cli
     class Config
 
+      BASE_DIR_NAME_REGEX = /_dir\z/
+      FILE_PATTERN_NAME_REGEX = /_files?\z/
+
       def initialize
         @base_dirs = {}
         @file_patterns = {}
@@ -15,8 +18,8 @@ class Repositext
       #     will be referenced.
       # @param[String] pattern_string A string with an absolute directory path
       def add_base_dir(name, base_dir_string)
-        if name.to_s !~ /_dir\z/
-          raise ArgumentError.new("A base dir name must end with '_dir'")
+        if name.to_s !~ BASE_DIR_NAME_REGEX
+          raise ArgumentError.new("A base dir name must match this regex: #{ BASE_DIR_NAME_REGEX.inspect }")
         end
         # guarantee trailing slash
         bd = base_dir_string.to_s.gsub(/\/\z/, '') + '/'
@@ -29,8 +32,8 @@ class Repositext
       # @param[String] pattern_string A string with an absolute file path that can be
       #     passed to Dir.glob
       def add_file_pattern(name, pattern_string)
-        if name.to_s !~ /_files\z/
-          raise ArgumentError.new("A file pattern name must end with '_files'")
+        if name.to_s !~ FILE_PATTERN_NAME_REGEX
+          raise ArgumentError.new("A file pattern name must match this regex: #{ FILE_PATTERN_NAME_REGEX.inspect }")
         end
         @file_patterns[name.to_sym] = pattern_string.to_s
       end
@@ -54,8 +57,8 @@ class Repositext
       # Retrieve a base dir
       # @param[String, Symbol] name
       def base_dir(name)
-        if name.to_s !~ /_dir\z/
-          raise ArgumentError.new("A base dir name must end with '_dir'")
+        if name.to_s !~ BASE_DIR_NAME_REGEX
+          raise ArgumentError.new("A base dir name must match this regex: #{ BASE_DIR_NAME_REGEX.inspect }")
         end
         get_config_val(@base_dirs, name)
       end
@@ -63,8 +66,8 @@ class Repositext
       # Retrieve a file pattern
       # @param[String, Symbol] name
       def file_pattern(name)
-        if name.to_s !~ /_files\z/
-          raise ArgumentError.new("A file pattern name must end with '_files'")
+        if name.to_s !~ FILE_PATTERN_NAME_REGEX
+          raise ArgumentError.new("A file pattern name must match this regex: #{ FILE_PATTERN_NAME_REGEX.inspect }")
         end
         get_config_val(@file_patterns, name)
       end
@@ -89,10 +92,10 @@ class Repositext
       def compute_glob_pattern(file_spec)
         segments = file_spec.split(Repositext::Cli::FILE_SPEC_DELIMITER)
         r = ''
-        if segments.all? { |e| e =~ /_(dir|files)\z/ }
+        if segments.all? { |e| e =~ BASE_DIR_NAME_REGEX || e =~ FILE_PATTERN_NAME_REGEX }
           # file_spec consists of named base_dir and/or file_pattern
-          bd = segments.detect { |e| e =~ /_dir\z/ } # e.g., 'master_dir'
-          fp = segments.detect { |e| e =~ /_files\z/ } # e.g., 'at_files'
+          bd = segments.detect { |e| e =~ BASE_DIR_NAME_REGEX } # e.g., 'content_dir'
+          fp = segments.detect { |e| e =~ FILE_PATTERN_NAME_REGEX } # e.g., 'at_files'
           r << base_dir(bd)  if bd
           r << file_pattern(fp)  if fp
         else
@@ -113,11 +116,11 @@ class Repositext
           if base_dir.nil? || file_pattern.nil?
             raise ArgumentError.new("file_spec requires both base_dir and file_pattern: #{ fs_string.inspect } in #{ input_file_specs.inspect }")
           end
-          if base_dir !~ /_dir\z/
+          if base_dir !~ BASE_DIR_NAME_REGEX
             raise ArgumentError.new("base_dir is not valid: #{ base_dir.inspect }")
           end
-          if file_pattern !~ /_files\z/
-            raise ArgumentError.new("file_spec is not valid: #{ file_pattern.inspect }")
+          if file_pattern !~ FILE_PATTERN_NAME_REGEX
+            raise ArgumentError.new("file_pattern is not valid: #{ file_pattern.inspect }")
           end
           m[fs_name] = [base_dir(base_dir), file_pattern(file_pattern)]
           m

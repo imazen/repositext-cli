@@ -21,6 +21,9 @@ describe Repositext::Cli::Config do
       config.add_base_dir(:test_dir, 'test')
       config.base_dir(:test_dir).must_equal 'test/'
     end
+    it "won't raise an ArgumentError if name ends with '_dir'" do
+      proc{ config.add_base_dir(:test_dir, :test) }.wont_raise ArgumentError
+    end
     it "raises an ArgumentError if name does not end with '_dir'" do
       proc{ config.add_base_dir(:test, :test) }.must_raise ArgumentError
     end
@@ -39,7 +42,13 @@ describe Repositext::Cli::Config do
       config.add_file_pattern(:test_files, :test)
       config.file_pattern(:test_files).must_equal 'test'
     end
-    it "raises an ArgumentError if name does not end with '_dir'" do
+    it "won't raise an ArgumentError if name ends with '_file'" do
+      proc{ config.add_file_pattern(:test_file, :test) }.wont_raise ArgumentError
+    end
+    it "won't raise an ArgumentError if name ends with '_files'" do
+      proc{ config.add_file_pattern(:test_files, :test) }.wont_raise ArgumentError
+    end
+    it "raises an ArgumentError if name does not end with '_file' or '_files'" do
       proc{ config.add_file_pattern(:test, :test) }.must_raise ArgumentError
     end
   end
@@ -86,6 +95,9 @@ describe Repositext::Cli::Config do
     it "raises on unknown name" do
       proc { config.base_dir(:unknown_key) }.must_raise ArgumentError
     end
+    it "won't raise an ArgumentError if name ends with '_dir'" do
+      proc{ config.base_dir(:test_dir) }.wont_raise ArgumentError
+    end
     it "raises an ArgumentError if name does not end with '_dir'" do
       proc{ config.base_dir(:test) }.must_raise ArgumentError
     end
@@ -103,7 +115,13 @@ describe Repositext::Cli::Config do
     it "raises on unknown name" do
       proc { config.file_pattern(:unknown_key) }.must_raise ArgumentError
     end
-    it "raises an ArgumentError if name does not end with '_dir'" do
+    it "won't raise an ArgumentError if name ends with '_file'" do
+      proc{ config.file_pattern(:test_file) }.wont_raise ArgumentError
+    end
+    it "won't raise an ArgumentError if name ends with '_files'" do
+      proc{ config.file_pattern(:test_files) }.wont_raise ArgumentError
+    end
+    it "raises an ArgumentError if name does not end with '_file' or '_files" do
       proc{ config.file_pattern(:test) }.must_raise ArgumentError
     end
   end
