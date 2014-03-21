@@ -4,10 +4,9 @@ This is an example Rtfile with default settings that run out of the box.
 Modify the DSL methods below to suit your repository layout.
 
 Base directories and file patterns are used in combination to specify file sets.
-The convention is to chain them together, separated by dots, just like Active
-Record scopes in rails:
+The convention is to chain them together, separated by a slash:
 
-<base_dir>.<file_pattern>
+    "<base_dir>/<file_pattern>"
 
 Examples:
 
@@ -21,11 +20,13 @@ Examples:
 # Base directories
 # ----------------
 
-# Provide a name and a base directory for each file set.
-# Append '_dir' to the name so that it can be resolved unambiguously.
+# Provide a name and a base directory string for each file set.
 # It is recommended to expand paths relative to the location of this Rtfile
 # so that they work independently of the user's current working directory.
-# (Rather than using the current working directory).
+#
+# Conventions:
+#  * Append '_dir' to the name so that it can be resolved unambiguously.
+#  * Base dirs do NOT include the trailing '/'.
 
 base_dir :import_folio_xml_dir, File.expand_path("initial_folio_import/folio/", File.dirname(__FILE__))
 base_dir :import_idml_dir, File.expand_path("initial_idml_import/idml/", File.dirname(__FILE__))
@@ -36,9 +37,13 @@ base_dir :staging_dir, File.expand_path("staging/", File.dirname(__FILE__))
 # File patterns
 # -------------
 
-# Provide a name and a file pattern string (or block that returns a string) for
-# each file pattern. These file patterns will be joined with base_dirs to
-# get a Dir.glob pattern for matching the desired file set.
+# Provide a name and a file pattern string for each file pattern.
+# These file patterns will be joined with base_dirs to get a Dir.glob pattern
+# for matching the desired file set.
+#
+# Conventions:
+#  * Append '_file' or 'files' to the name so that it can be resolved unambiguously.
+#  * File patterns do NOT include the leading '/'.
 
 file_pattern :all_files, '**/*'
 file_pattern :at_files, '**/*.at'
@@ -49,12 +54,13 @@ file_pattern :json_files, '**/*.json'
 file_pattern :pt_files, '**/*.md'
 file_pattern :repositext_files, '**/*.{at,json,md,txt}'
 file_pattern :txt_files, '**/*.txt'
+file_pattern :validation_report_file, 'validation_report.txt'
 file_pattern :xml_files, '**/*.xml'
 
 # Kramdown Parsers
 # ----------------
 
-# Provide a name and a Parser's class name as string
+# Provide a name and a Parser's class name as string.
 
 kramdown_parser :folio_xml, 'Kramdown::Parser::Folio'
 kramdown_parser :idml,      'Kramdown::Parser::Idml'
@@ -66,5 +72,5 @@ kramdown_parser :idml,      'Kramdown::Parser::Idml'
 
 kramdown_converter_method :to_at,         :to_kramdown
 kramdown_converter_method :to_icml,       :to_icml
-kramdown_converter_method :to_idml_story, :to_icml_story
+kramdown_converter_method :to_idml_story, :to_idml_story
 kramdown_converter_method :to_plain_text, :to_plain_text
