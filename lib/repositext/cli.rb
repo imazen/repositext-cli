@@ -116,7 +116,7 @@ class Repositext
                   :type => :string,
                   :default => nil,
                   :desc => 'Specifies a file name to which a validation report will be written.'
-    method_option :run_validations,
+    method_option :run_options,
                   :type => :array,
                   :default => %w[pre_import post_import],
                   :desc => 'Specifies which validations to run. Possible values: %w[pre_import post_import]'

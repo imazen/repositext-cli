@@ -110,6 +110,7 @@ class Repositext
       # Computes a hash with validation file specs from input_file_specs
       # @param[Hash] input_file_specs this hash will be transformed into a hash
       #     that can be passed to a validation as file_specs.
+      # @return[Hash]
       def compute_validation_file_specs(input_file_specs)
         input_file_specs.inject({}) { |m,(fs_name, fs_string)|
           base_dir, file_pattern = fs_string.split(Repositext::Cli::FILE_SPEC_DELIMITER).compact

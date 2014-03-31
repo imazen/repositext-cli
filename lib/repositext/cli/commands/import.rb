@@ -6,6 +6,7 @@ class Repositext
 
       # Import from all sources and merge into /content
       def import_all(options)
+        reset_validation_report_once(options, 'rt import all')
         import_docx_specific_steps(options)
         import_folio_xml_specific_steps(options)
         import_idml_specific_steps(options)
@@ -14,18 +15,21 @@ class Repositext
 
       # Import DOCX and merge into /content
       def import_docx(options)
+        reset_validation_report_once(options, 'rt import docx')
         import_docx_specific_steps(options)
         import_shared_steps(options)
       end
 
       # Import FOLIO XML and merge into /content
       def import_folio_xml(options)
+        reset_validation_report_once(options, 'rt import folio_xml')
         import_folio_xml_specific_steps(options)
         import_shared_steps(options)
       end
 
       # Import IDML and merge into /content
       def import_idml(options)
+        reset_validation_report_once(options, 'rt import idml')
         import_idml_specific_steps(options)
         import_shared_steps(options)
       end
@@ -35,7 +39,9 @@ class Repositext
         puts 'import_test'
       end
 
+      # -----------------------------------------------------
       # Helper methods for DRY process specs
+      # -----------------------------------------------------
 
       def import_docx_specific_steps(options)
         # convert_docx_to_???(options)
@@ -43,23 +49,35 @@ class Repositext
       end
 
       def import_folio_xml_specific_steps(options)
-        validate_folio_xml_import({ 'run_validations' => %w[pre_import] }.merge(options))
+        report_file_spec = config.compute_glob_pattern(
+          options['report_file'] || 'import_folio_xml_dir/validation_report_file'
+        )
+        validate_folio_xml_import({
+          'run_options' => %w[pre_import],
+          'report_file' => report_file_spec
+        }.merge(options))
         convert_folio_xml_to_at(options)
         fix_remove_underscores_inside_folio_paragraph_numbers(options)
         fix_convert_folio_typographical_chars(options)
-        validate_folio_xml_import(
-          {
-            'run_validations' => %w[post_import],
-            'report_file' => config.compute_glob_pattern(
-              options['report_file'] || 'import_folio_xml_dir/validation_report_file'
-            )
-          }.merge(options)
-        )
+        validate_folio_xml_import({
+          'run_options' => %w[post_import],
+          'report_file' => report_file_spec
+        }.merge(options))
       end
 
       def import_idml_specific_steps(options)
+        report_file_spec = config.compute_glob_pattern(
+          options['report_file'] || 'import_idml_dir/validation_report_file'
+        )
+        validate_idml_import({
+          'run_options' => %w[pre_import],
+          'report_file' => report_file_spec
+        }.merge(options))
         convert_idml_to_at(options)
-        validate_utf8_encoding(options.merge('input' => 'import_idml_dir/repositext_files'))
+        validate_idml_import({
+          'run_options' => %w[post_import],
+          'report_file' => report_file_spec
+        }.merge(options))
       end
 
       # Specifies all shared steps that need to run after each import

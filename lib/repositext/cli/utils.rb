@@ -161,7 +161,7 @@ class Repositext
                 end
               end
             rescue => e
-              $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{counts[:errors] == 0 ? e.backtrace.join("\n") : ''})
+              $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{ e.backtrace.join("\n") })
               counts[:errors] += 1
             end
             counts[:total] += 1

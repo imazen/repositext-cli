@@ -4,71 +4,96 @@ class Repositext
 
     private
 
-      # Validates that all files in file set have valid AT syntax
-      def validate_at_syntax(options)
-        input_file_spec = options['input'] || 'import_folio_xml_dir/at_files'
-        vfs = config.compute_validation_file_specs(primary: input_file_spec)
-        Repositext::Validation.new('AtFiles', vfs, options).run
-      end
-
-      # Validates all files in /content
+      # Validates all files in /content directory
       def validate_content(options)
+        reset_validation_report_once(options, 'rt validate content')
         file_specs = config.compute_validation_file_specs(
+          primary: 'content_dir/all_files', # for reporting only
           at_files: 'content_dir/at_files',
+          pt_files: 'content_dir/pt_files',
           repositext_files: 'content_dir/repositext_files'
         )
-        # Repositext::Validation.new(
-        #   'Utf8Encoding',
-        #   { :primary => file_specs[:repositext_files] },
-        #   options
-        # ).run
         Repositext::Validation.new(
-          'AtFiles',
-          { :primary => file_specs[:at_files] },
+          'Content',
+          file_specs,
           options
         ).run
       end
 
       # Validates all files related to folio xml import
       def validate_folio_xml_import(options)
+        reset_validation_report_once(options, 'rt validate folio_xml_import')
         file_specs = config.compute_validation_file_specs(
+          primary: 'import_folio_xml_dir/all_files', # for reporting only
           folio_xml_sources: options['input'] || 'import_folio_xml_dir/xml_files',
           imported_at_files: 'import_folio_xml_dir/at_files',
           imported_repositext_files: 'import_folio_xml_dir/repositext_files',
         )
-
-        if options['run_validations'].include?('pre_import')
-          Repositext::Validation.new(
-            'Utf8Encoding',
-            { :primary => file_specs[:folio_xml_sources] },
-            options
-          ).run
-        end
-
-        if options['run_validations'].include?('post_import')
-          Repositext::Validation.new(
-            'Utf8Encoding',
-            { :primary => file_specs[:imported_repositext_files] },
-            options
-          ).run
-          Repositext::Validation.new(
-            'AtFiles',
-            { :primary => file_specs[:imported_at_files] },
-            options
-          ).run
-        end
+        Repositext::Validation.new(
+          'FolioXmlImport',
+          file_specs,
+          {
+            'validation_config' => {
+              'source_parser_class' => config.kramdown_parser(:folio_xml),
+              'source_converter_method' => config.kramdown_converter_method(:to_at),
+              'kramdown_parser_class' => config.kramdown_parser(:kramdown)
+            }
+          }.merge(options)
+        ).run
       end
 
-      # Validates that all files in file set are UTF8 encoded
-      def validate_utf8_encoding(options)
-        input_file_spec = options['input'] || 'import_idml_dir/repositext_files'
-        vfs = config.compute_validation_file_specs(primary: input_file_spec)
-        Repositext::Validation.new('Utf8Encoding', vfs, options).run
+      # Validates all files related to idml import
+      def validate_idml_import(options)
+        reset_validation_report_once(options, 'rt validate idml_import')
+        file_specs = config.compute_validation_file_specs(
+          primary: 'import_idml_dir/all_files', # for reporting only
+          idml_sources: options['input'] || 'import_idml_dir/idml_files',
+          imported_at_files: 'import_idml_dir/at_files',
+          imported_repositext_files: 'import_idml_dir/repositext_files',
+        )
+
+        Repositext::Validation.new(
+          'IdmlImport',
+          file_specs,
+          {
+            'validation_config' => {
+              'source_parser_class' => config.kramdown_parser(:idml),
+              'source_converter_method' => config.kramdown_converter_method(:to_at),
+              'kramdown_parser_class' => config.kramdown_parser(:kramdown)
+            }
+          }.merge(options)
+        ).run
       end
 
+      # Used for automated testing
       def validate_test(options)
-        # dummy method for testing
         puts 'validate_test'
+      end
+
+      # ----------------------------------------------------------
+      # Helper methods
+      # ----------------------------------------------------------
+
+      # Resets the validation report located at options['report_file']
+      # unless options['append_to_report'] is true. In that case it will
+      # leave the report file alone and just append to it.
+      # Also sets the 'append_to_report' option to true to prevent downstream
+      # validations from resetting it again
+      # Validations by default append to the report file so that results of
+      # earlier validations are not overwritten by those of later ones.
+      # We set it up this way so that e.g., the commands in import can reset
+      # the report file and stop called validations from resetting it again.
+      # @param[Hash] options, salient keys: 'report_file' and 'append_to_report'
+      # @param[String] marker. An id line that will be added to the top of the
+      #    report, along with a time stamp.
+      def reset_validation_report_once(options, marker)
+        return true  if options['append_to_report']
+        if options['report_file']
+          # reset report
+          Repositext::Validation.reset_report(options['report_file'], marker)
+          # prevent downstream validations to reset again
+          options['append_to_report'] = true
+        end
       end
 
     end
