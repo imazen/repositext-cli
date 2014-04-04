@@ -160,7 +160,7 @@ class Repositext
                   counts[:errors] += 1
                 end
               end
-            rescue => e
+            rescue Exception => e
               $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{ e.backtrace.join("\n") })
               counts[:errors] += 1
             end
@@ -216,7 +216,7 @@ class Repositext
                 $stderr.puts "  * Create: #{ new_path }"
               end
               counts[:success] += 1
-            rescue => e
+            rescue Exception => e
               $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{counts[:errors] == 0 ? e.backtrace.join("\n") : ''})
               counts[:errors] += 1
             end

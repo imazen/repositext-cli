@@ -53,15 +53,15 @@ class Repositext
           options['report_file'] || 'import_folio_xml_dir/validation_report_file'
         )
         validate_folio_xml_import({
+          'report_file' => report_file_spec,
           'run_options' => %w[pre_import],
-          'report_file' => report_file_spec
         }.merge(options))
         convert_folio_xml_to_at(options)
         fix_remove_underscores_inside_folio_paragraph_numbers(options)
         fix_convert_folio_typographical_chars(options)
         validate_folio_xml_import({
+          'report_file' => report_file_spec,
           'run_options' => %w[post_import],
-          'report_file' => report_file_spec
         }.merge(options))
       end
 
@@ -70,13 +70,13 @@ class Repositext
           options['report_file'] || 'import_idml_dir/validation_report_file'
         )
         validate_idml_import({
-          'run_options' => %w[pre_import],
-          'report_file' => report_file_spec
+          'report_file' => report_file_spec,
+          'run_options' => %w[pre_import]
         }.merge(options))
         convert_idml_to_at(options)
         validate_idml_import({
-          'run_options' => %w[post_import],
-          'report_file' => report_file_spec
+          'report_file' => report_file_spec,
+          'run_options' => %w[post_import]
         }.merge(options))
       end
 

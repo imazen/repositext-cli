@@ -63,8 +63,10 @@ file_pattern :xml_files, '**/*.xml'
 # Provide a name and a Parser's class name as string.
 
 kramdown_parser :folio_xml, 'Kramdown::Parser::Folio'
-kramdown_parser :idml,      'Kramdown::Parser::Idml'
-kramdown_parser :kramdown,  'Kramdown::Parser::KramdownRepositext'
+kramdown_parser :idml, 'Kramdown::Parser::Idml'
+kramdown_parser :idml_validation, 'Kramdown::Parser::IdmlValidation'
+kramdown_parser :kramdown, 'Kramdown::Parser::KramdownRepositext'
+kramdown_parser :kramdown_validation, 'Kramdown::Parser::KramdownValidation'
 
 # Kramdown Converter Methods
 # --------------------------

@@ -6,6 +6,12 @@ class Repositext
 
       # Validates all files in /content directory
       def validate_content(options)
+        options = {
+          'report_file' => 'content_dir/validation_report_file'
+        }.merge(options)
+        if options['report_file']
+          options['report_file'] = config.compute_glob_pattern(options['report_file'])
+        end
         reset_validation_report_once(options, 'rt validate content')
         file_specs = config.compute_validation_file_specs(
           primary: 'content_dir/all_files', # for reporting only
@@ -13,15 +19,22 @@ class Repositext
           pt_files: 'content_dir/pt_files',
           repositext_files: 'content_dir/repositext_files'
         )
-        Repositext::Validation.new(
-          'Content',
+        Repositext::Validation::Content.new(
           file_specs,
-          options
+          {
+            'kramdown_validation_parser_class' => config.kramdown_parser(:kramdown_validation)
+          }.merge(options)
         ).run
       end
 
       # Validates all files related to folio xml import
       def validate_folio_xml_import(options)
+        options = {
+          'report_file' => 'import_folio_xml_dir/validation_report_file'
+        }.merge(options)
+        if options['report_file']
+          options['report_file'] = config.compute_glob_pattern(options['report_file'])
+        end
         reset_validation_report_once(options, 'rt validate folio_xml_import')
         file_specs = config.compute_validation_file_specs(
           primary: 'import_folio_xml_dir/all_files', # for reporting only
@@ -29,21 +42,25 @@ class Repositext
           imported_at_files: 'import_folio_xml_dir/at_files',
           imported_repositext_files: 'import_folio_xml_dir/repositext_files',
         )
-        Repositext::Validation.new(
-          'FolioXmlImport',
+        Repositext::Validation::FolioXmlImport.new(
           file_specs,
           {
-            'validation_config' => {
-              'source_parser_class' => config.kramdown_parser(:folio_xml),
-              'source_converter_method' => config.kramdown_converter_method(:to_at),
-              'kramdown_parser_class' => config.kramdown_parser(:kramdown)
-            }
+            'import_parser_class' => config.kramdown_parser(:folio_xml),
+            'kramdown_converter_method_name' => config.kramdown_converter_method(:to_at),
+            'kramdown_parser_class' => config.kramdown_parser(:kramdown),
+            'kramdown_validation_parser_class' => config.kramdown_parser(:kramdown_validation)
           }.merge(options)
         ).run
       end
 
       # Validates all files related to idml import
       def validate_idml_import(options)
+        options = {
+          'report_file' => 'import_idml_dir/validation_report_file'
+        }.merge(options)
+        if options['report_file']
+          options['report_file'] = config.compute_glob_pattern(options['report_file'])
+        end
         reset_validation_report_once(options, 'rt validate idml_import')
         file_specs = config.compute_validation_file_specs(
           primary: 'import_idml_dir/all_files', # for reporting only
@@ -52,15 +69,14 @@ class Repositext
           imported_repositext_files: 'import_idml_dir/repositext_files',
         )
 
-        Repositext::Validation.new(
-          'IdmlImport',
+        Repositext::Validation::IdmlImport.new(
           file_specs,
           {
-            'validation_config' => {
-              'source_parser_class' => config.kramdown_parser(:idml),
-              'source_converter_method' => config.kramdown_converter_method(:to_at),
-              'kramdown_parser_class' => config.kramdown_parser(:kramdown)
-            }
+            'idml_validation_parser_class' => config.kramdown_parser(:idml_validation),
+            'import_parser_class' => config.kramdown_parser(:idml),
+            'kramdown_converter_method_name' => config.kramdown_converter_method(:to_at),
+            'kramdown_parser_class' => config.kramdown_parser(:kramdown),
+            'kramdown_validation_parser_class' => config.kramdown_parser(:kramdown_validation),
           }.merge(options)
         ).run
       end
