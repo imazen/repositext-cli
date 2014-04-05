@@ -4,6 +4,29 @@ class Repositext
 
     private
 
+      # Move gap_marks (%) to the outside of
+      # * asterisks
+      # * quotes (primary or secondary)
+      # * parentheses
+      # * brackets
+      # Those characters may be nested, move % all the way out if those characters
+      # are directly adjacent.
+      # If % directly follows an elipsis, move to the front of the ellipsis
+      # (unless where elipsis and % are between two words like so: word…%word)
+      def fix_adjust_gap_mark_positions(options)
+        input_file_spec = options['input'] || 'import_idml_dir/at_files'
+        Repositext::Cli::Utils.change_files_in_place(
+          config.compute_glob_pattern(input_file_spec),
+          /\.at\z/i,
+          "Adjusting :gap_mark positions",
+          options
+        ) do |contents, filename|
+          outcome = Repositext::Fix::AdjustGapMarkPositions.fix(contents)
+          [outcome]
+        end
+      end
+
+
       # When merging AT imported from Folio XML with AT imported from IDML,
       # the :record_marks sometimes end up in the middle of a paragraph.
       # This happens when Folio and IDML have textual differences.

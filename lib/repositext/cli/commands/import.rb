@@ -78,6 +78,7 @@ class Repositext
           'report_file' => report_file_spec,
           'run_options' => %w[post_import]
         }.merge(options))
+        fix_adjust_gap_mark_positions(options)
       end
 
       # Specifies all shared steps that need to run after each import
