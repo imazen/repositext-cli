@@ -36,15 +36,24 @@ class Repositext
           imported_at_files: 'import_folio_xml_dir/at_files',
           imported_repositext_files: 'import_folio_xml_dir/repositext_files',
         )
-        Repositext::Validation::FolioXmlImport.new(
-          file_specs,
-          {
-            'import_parser_class' => config.kramdown_parser(:folio_xml),
-            'kramdown_converter_method_name' => config.kramdown_converter_method(:to_at),
-            'kramdown_parser_class' => config.kramdown_parser(:kramdown),
-            'kramdown_validation_parser_class' => config.kramdown_parser(:kramdown_validation)
-          }.merge(options)
-        ).run
+        validation_options = {
+          'folio_xml_parser_class' => config.kramdown_parser(:folio_xml),
+          'kramdown_converter_method_name' => config.kramdown_converter_method(:to_at),
+          'kramdown_parser_class' => config.kramdown_parser(:kramdown),
+          'kramdown_validation_parser_class' => config.kramdown_parser(:kramdown_validation)
+        }.merge(options)
+        if options['run_list'].include?('pre_import')
+          Repositext::Validation::FolioXmlPreImport.new(
+            file_specs,
+            validation_options
+          ).run
+        end
+        if options['run_list'].include?('post_import')
+          Repositext::Validation::FolioXmlPostImport.new(
+            file_specs,
+            validation_options
+          ).run
+        end
       end
 
       # Validates all files related to idml import
@@ -59,17 +68,25 @@ class Repositext
           imported_at_files: 'import_idml_dir/at_files',
           imported_repositext_files: 'import_idml_dir/repositext_files',
         )
-
-        Repositext::Validation::IdmlImport.new(
-          file_specs,
-          {
-            'idml_validation_parser_class' => config.kramdown_parser(:idml_validation),
-            'import_parser_class' => config.kramdown_parser(:idml),
-            'kramdown_converter_method_name' => config.kramdown_converter_method(:to_at),
-            'kramdown_parser_class' => config.kramdown_parser(:kramdown),
-            'kramdown_validation_parser_class' => config.kramdown_parser(:kramdown_validation),
-          }.merge(options)
-        ).run
+        validation_options = {
+          'idml_parser_class' => config.kramdown_parser(:idml),
+          'idml_validation_parser_class' => config.kramdown_parser(:idml_validation),
+          'kramdown_converter_method_name' => config.kramdown_converter_method(:to_at),
+          'kramdown_parser_class' => config.kramdown_parser(:kramdown),
+          'kramdown_validation_parser_class' => config.kramdown_parser(:kramdown_validation),
+        }.merge(options)
+        if options['run_options'].include?('pre_import')
+          Repositext::Validation::IdmlPreImport.new(
+            file_specs,
+            validation_options
+          ).run
+        end
+        if options['run_options'].include?('post_import')
+          Repositext::Validation::IdmlPostImport.new(
+            file_specs,
+            validation_options
+          ).run
+        end
       end
 
       # Used for automated testing
