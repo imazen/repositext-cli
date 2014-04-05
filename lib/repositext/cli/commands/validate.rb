@@ -6,13 +6,10 @@ class Repositext
 
       # Validates all files in /content directory
       def validate_content(options)
-        options = {
-          'report_file' => 'content_dir/validation_report_file'
-        }.merge(options)
-        if options['report_file']
-          options['report_file'] = config.compute_glob_pattern(options['report_file'])
-        end
-        reset_validation_report_once(options, 'rt validate content')
+        options['report_file'] ||= config.compute_glob_pattern(
+          'content_dir/validation_report_file'
+        )
+        reset_validation_report(options, 'validate_content')
         file_specs = config.compute_validation_file_specs(
           primary: 'content_dir/all_files', # for reporting only
           at_files: 'content_dir/at_files',
@@ -29,13 +26,10 @@ class Repositext
 
       # Validates all files related to folio xml import
       def validate_folio_xml_import(options)
-        options = {
-          'report_file' => 'import_folio_xml_dir/validation_report_file'
-        }.merge(options)
-        if options['report_file']
-          options['report_file'] = config.compute_glob_pattern(options['report_file'])
-        end
-        reset_validation_report_once(options, 'rt validate folio_xml_import')
+        options['report_file'] ||= config.compute_glob_pattern(
+          'import_folio_xml_dir/validation_report_file'
+        )
+        reset_validation_report(options, 'validate_folio_xml_import')
         file_specs = config.compute_validation_file_specs(
           primary: 'import_folio_xml_dir/all_files', # for reporting only
           folio_xml_sources: options['input'] || 'import_folio_xml_dir/xml_files',
@@ -55,13 +49,10 @@ class Repositext
 
       # Validates all files related to idml import
       def validate_idml_import(options)
-        options = {
-          'report_file' => 'import_idml_dir/validation_report_file'
-        }.merge(options)
-        if options['report_file']
-          options['report_file'] = config.compute_glob_pattern(options['report_file'])
-        end
-        reset_validation_report_once(options, 'rt validate idml_import')
+        options['report_file'] ||= config.compute_glob_pattern(
+          'import_idml_dir/validation_report_file'
+        )
+        reset_validation_report(options, 'validate_idml_import')
         file_specs = config.compute_validation_file_specs(
           primary: 'import_idml_dir/all_files', # for reporting only
           idml_sources: options['input'] || 'import_idml_dir/idml_files',
@@ -90,25 +81,18 @@ class Repositext
       # Helper methods
       # ----------------------------------------------------------
 
-      # Resets the validation report located at options['report_file']
-      # unless options['append_to_report'] is true. In that case it will
-      # leave the report file alone and just append to it.
-      # Also sets the 'append_to_report' option to true to prevent downstream
-      # validations from resetting it again
+      # Resets the validation report located at options['report_file'].
       # Validations by default append to the report file so that results of
       # earlier validations are not overwritten by those of later ones.
-      # We set it up this way so that e.g., the commands in import can reset
-      # the report file and stop called validations from resetting it again.
-      # @param[Hash] options, salient keys: 'report_file' and 'append_to_report'
+      # @param[Hash] salient keys: 'report_file' and 'append_to_validation_report'
       # @param[String] marker. An id line that will be added to the top of the
       #    report, along with a time stamp.
-      def reset_validation_report_once(options, marker)
-        return true  if options['append_to_report']
+      def reset_validation_report(options, marker)
+        return true if options['append_to_validation_report']
         if options['report_file']
           # reset report
           Repositext::Validation.reset_report(options['report_file'], marker)
-          # prevent downstream validations to reset again
-          options['append_to_report'] = true
+          @options
         end
       end
 

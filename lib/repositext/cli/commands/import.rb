@@ -6,7 +6,6 @@ class Repositext
 
       # Import from all sources and merge into /content
       def import_all(options)
-        reset_validation_report_once(options, 'rt import all')
         import_docx_specific_steps(options)
         import_folio_xml_specific_steps(options)
         import_idml_specific_steps(options)
@@ -15,21 +14,18 @@ class Repositext
 
       # Import DOCX and merge into /content
       def import_docx(options)
-        reset_validation_report_once(options, 'rt import docx')
         import_docx_specific_steps(options)
         import_shared_steps(options)
       end
 
       # Import FOLIO XML and merge into /content
       def import_folio_xml(options)
-        reset_validation_report_once(options, 'rt import folio_xml')
         import_folio_xml_specific_steps(options)
         import_shared_steps(options)
       end
 
       # Import IDML and merge into /content
       def import_idml(options)
-        reset_validation_report_once(options, 'rt import idml')
         import_idml_specific_steps(options)
         import_shared_steps(options)
       end
@@ -49,36 +45,30 @@ class Repositext
       end
 
       def import_folio_xml_specific_steps(options)
-        report_file_spec = config.compute_glob_pattern(
-          options['report_file'] || 'import_folio_xml_dir/validation_report_file'
+        options['report_file'] = config.compute_glob_pattern(
+          'import_folio_xml_dir/validation_report_file'
         )
-        validate_folio_xml_import({
-          'report_file' => report_file_spec,
-          'run_options' => %w[pre_import],
-        }.merge(options))
+        options['append_to_validation_report'] = false
+        reset_validation_report(options, 'import_folio_xml_specific_steps')
+        validate_folio_xml_import(options.merge('run_options' => %w[pre_import]))
         convert_folio_xml_to_at(options)
         fix_remove_underscores_inside_folio_paragraph_numbers(options)
         fix_convert_folio_typographical_chars(options)
-        validate_folio_xml_import({
-          'report_file' => report_file_spec,
-          'run_options' => %w[post_import],
-        }.merge(options))
+        options['append_to_validation_report'] = true
+        validate_folio_xml_import(options.merge('run_options' => %w[post_import]))
       end
 
       def import_idml_specific_steps(options)
-        report_file_spec = config.compute_glob_pattern(
-          options['report_file'] || 'import_idml_dir/validation_report_file'
+        options['report_file'] = config.compute_glob_pattern(
+          'import_idml_dir/validation_report_file'
         )
-        validate_idml_import({
-          'report_file' => report_file_spec,
-          'run_options' => %w[pre_import]
-        }.merge(options))
+        options['append_to_validation_report'] = false
+        reset_validation_report(options, 'import_idml_specific_steps')
+        validate_idml_import(options.merge('run_options' => %w[pre_import]))
         convert_idml_to_at(options)
-        validate_idml_import({
-          'report_file' => report_file_spec,
-          'run_options' => %w[post_import]
-        }.merge(options))
         fix_adjust_gap_mark_positions(options)
+        options['append_to_validation_report'] = true
+        validate_idml_import(options.merge('run_options' => %w[post_import]))
       end
 
       # Specifies all shared steps that need to run after each import
@@ -89,13 +79,12 @@ class Repositext
         fix_adjust_merged_record_mark_positions(options)
         fix_convert_abbreviations_to_lower_case(options) # run after merge_record_marks...
         move_staging_to_content(options)
-        validate_content(
-          {
-            'report_file' => config.compute_glob_pattern(
-              options['report_file'] || 'content_dir/validation_report_file'
-            )
-          }.merge(options)
+        options['report_file'] = config.compute_glob_pattern(
+          'content_dir/validation_report_file'
         )
+        options['append_to_validation_report'] = false
+        reset_validation_report(options, 'import_shared_steps')
+        validate_content(options)
       end
 
     end
