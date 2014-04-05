@@ -36,6 +36,13 @@ class Repositext
                  :type => :string,
                  :desc => 'Specifies the input file pattern. Expects an absolute path pattern that can be used with Dir.glob.'
 
+    # Override original initialize so that the options hash is not frozen. We
+    # need to modify it.
+    def initialize(args=[], options={}, config={})
+      super
+      @options = @options.dup
+    end
+
 
     # Basic commands
 
