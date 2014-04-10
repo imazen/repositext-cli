@@ -50,9 +50,9 @@ class Repositext
               File.write(output_file_name, at_with_merged_tokens)
               success_count += 1
               $stderr.puts " + Merge rids from #{ at_folio_file_name }"
-            rescue Exception => e
+            rescue StandardError => e
               errors_count += 1
-              puts " x Error in #{ at_folio_file_name }: #{ e.class.to_s }, #{ e.message }"
+              $stderr.puts " x Error: #{ at_folio_file_name }: #{ e.class.name } - #{ e.message } - #{ e.backtrace.join("\n") }"
             end
           else
             # IDML file is not present,
