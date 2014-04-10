@@ -42,13 +42,13 @@ class Repositext
           'kramdown_parser_class' => config.kramdown_parser(:kramdown),
           'kramdown_validation_parser_class' => config.kramdown_parser(:kramdown_validation)
         }.merge(options)
-        if options['run_list'].include?('pre_import')
+        if options['run_options'].include?('pre_import')
           Repositext::Validation::FolioXmlPreImport.new(
             file_specs,
             validation_options
           ).run
         end
-        if options['run_list'].include?('post_import')
+        if options['run_options'].include?('post_import')
           Repositext::Validation::FolioXmlPostImport.new(
             file_specs,
             validation_options
