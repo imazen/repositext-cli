@@ -27,12 +27,10 @@ class Repositext
     end
 
     class_option :rtfile,
-                 :aliases => '-rt',
                  :type => :string,
                  :required => true,
                  :desc => 'Specifies which Rtfile to use. Defaults to the closest Rtfile found in the directory hierarchy.'
     class_option :input,
-                 :aliases => '-i',
                  :type => :string,
                  :desc => 'Specifies the input file pattern. Expects an absolute path pattern that can be used with Dir.glob.'
     class_option :changed_only,
