@@ -35,6 +35,10 @@ class Repositext
                  :aliases => '-i',
                  :type => :string,
                  :desc => 'Specifies the input file pattern. Expects an absolute path pattern that can be used with Dir.glob.'
+    class_option :changed_only,
+                 :type => :boolean,
+                 :default => true,
+                 :desc => 'If true, only files that have been changed or added will be processed.'
 
     # Override original initialize so that the options hash is not frozen. We
     # need to modify it.

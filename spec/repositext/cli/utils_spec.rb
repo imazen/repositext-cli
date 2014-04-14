@@ -3,35 +3,34 @@ require_relative '../../helper'
 describe Repositext::Cli::Utils do
 
   let(:mod) { Repositext::Cli::Utils }
-  let(:in_cont) { 'Input file content'}
-  let(:out_cont) { 'Output file content'}
-  let(:in_file_pattern) { '/directory_1/*.in' }
-  let(:in_file_filter) { /\.in\z/ }
-  let(:in_file_names) { Dir.glob(in_file_pattern).dup }
-  let(:desc) { '[description of operation, e.g., export_files]' }
-
-  before do
-    # Activate FakeFS
-    FakeFS.activate!
-    FileSystem.clear
-    # Redirect console output for clean test logs
-    # NOTE: use STDOUT.puts if you want to print something to the test output
-    @stderr = $stderr = StringIO.new
-    @stdout = $stdout = StringIO.new
-  end
-
-  after do
-    FakeFS.deactivate!
-  end
 
   describe 'File operation helper methods' do
 
+    let(:in_cont) { 'Input file content'}
+    let(:out_cont) { 'Output file content'}
+    let(:in_file_pattern) { '/directory_1/*.in' }
+    let(:in_file_filter) { /\.in\z/ }
+    let(:in_file_names) { Dir.glob(in_file_pattern).dup }
+    let(:desc) { '[description of operation, e.g., export_files]' }
+
     before do
+      # Activate FakeFS
+      FakeFS.activate!
+      FileSystem.clear
+      # Redirect console output for clean test logs
+      # NOTE: use STDOUT.puts if you want to print something to the test output
+      @stderr = $stderr = StringIO.new
+      @stdout = $stdout = StringIO.new
+
       # Create test input files
       FileUtils.mkdir('/directory_1')
       %w[test1 test2].each { |e|
         File.open("/directory_1/#{ e }.in", 'w') { |f| f.write(in_cont) }
       }
+    end
+
+    after do
+      FakeFS.deactivate!
     end
 
     describe '.change_files_in_place' do
@@ -207,42 +206,99 @@ describe Repositext::Cli::Utils do
       end
     end
 
-  end
-
-  describe '.replace_file_extension' do
-    [
-      ['filename1.ext1', 'ext2', 'filename1.ext2'],
-      ['/path1/path2/filename2.ext1', 'ext2', '/path1/path2/filename2.ext2'],
-      ['filename3', 'ext1', 'filename3.ext1'],
-      ['filename4.ext1.ext2', 'ext3', 'filename4.ext1.ext3'],
-      ['filename5.ext1', '.ext_with_dot', 'filename5.ext_with_dot'],
-      ['filename6.', 'ext1', 'filename6.ext1'],
-    ].each_with_index do |(filename, new_extension, xpect), idx|
-      it "Handles scenario #{ idx + 1 }" do
-        mod.replace_file_extension(filename, new_extension).must_equal xpect
+    describe '.replace_file_extension' do
+      [
+        ['filename1.ext1', 'ext2', 'filename1.ext2'],
+        ['/path1/path2/filename2.ext1', 'ext2', '/path1/path2/filename2.ext2'],
+        ['filename3', 'ext1', 'filename3.ext1'],
+        ['filename4.ext1.ext2', 'ext3', 'filename4.ext1.ext3'],
+        ['filename5.ext1', '.ext_with_dot', 'filename5.ext_with_dot'],
+        ['filename6.', 'ext1', 'filename6.ext1'],
+      ].each_with_index do |(filename, new_extension, xpect), idx|
+        it "Handles scenario #{ idx + 1 }" do
+          mod.replace_file_extension(filename, new_extension).must_equal xpect
+        end
       end
     end
+
+    describe '.write_file_unless_path_is_blank' do
+
+      it "doesn't write a file if file_path is blank" do
+        mod.write_file_unless_path_is_blank('', 'test').must_equal false
+      end
+
+      it "writes a file if file_path is not blank" do
+        file_path = '/test.txt'
+        file_contents = "test string #{ rand(1000) }"
+        mod.write_file_unless_path_is_blank(file_path, file_contents)
+        File.read(file_path).must_equal file_contents
+      end
+      # TODO: test what happens if path doesn't exist
+
+      it "returns number of bytes written" do
+        file_path = '/test.txt'
+        file_contents = "test string #{ rand(1000) }"
+        mod.write_file_unless_path_is_blank(file_path, file_contents).must_equal file_contents.size
+      end
+    end
+
   end
 
-  describe '.write_file_unless_path_is_blank' do
+  describe '.compute_list_of_changed_files' do
 
-    it "doesn't write a file if file_path is blank" do
-      mod.write_file_unless_path_is_blank('', 'test').must_equal false
+    let(:dir_with_test_data) { get_test_data_path_for('repositext/cli/utils/compute_list_of_changed_files') }
+
+    before do
+      # Clean up any modifications in test data dir
+      `git reset HEAD -- #{ dir_with_test_data }` # reset first to unstage any staged changes
+      `git checkout -- #{ dir_with_test_data }` # remove modifications in working tree
+      `git clean -d --force -- #{ dir_with_test_data }` # remove new/untracked files and dirs from working tree
     end
 
-    it "writes a file if file_path is not blank" do
-      file_path = '/test.txt'
-      file_contents = "test string #{ rand(1000) }"
-      mod.write_file_unless_path_is_blank(file_path, file_contents)
-      File.read(file_path).must_equal file_contents
+    after do
+      # Clean up any modifications in test data dir
+      `git reset HEAD -- #{ dir_with_test_data }` # reset first to unstage any staged changes
+      `git checkout -- #{ dir_with_test_data }` # remove modifications in working tree
+      `git clean -d --force -- #{ dir_with_test_data }` # remove new/untracked files and dirs from working tree
     end
-    # TODO: test what happens if path doesn't exist
 
-    it "returns number of bytes written" do
-      file_path = '/test.txt'
-      file_contents = "test string #{ rand(1000) }"
-      mod.write_file_unless_path_is_blank(file_path, file_contents).must_equal file_contents.size
+    it 'returns nil if given false' do
+      mod.compute_list_of_changed_files(false).must_equal nil
     end
+
+    describe 'if given true' do
+
+      it 'detects modified staged files' do
+        modified_staged_file_path = File.join(dir_with_test_data, 'modified_staged_file.md')
+        mod.compute_list_of_changed_files(true, dir_with_test_data).must_equal []
+        File.write(modified_staged_file_path, "#{ rand(1000) }")
+        `git add #{ modified_staged_file_path }` # stage the file
+        mod.compute_list_of_changed_files(true, dir_with_test_data).must_equal [modified_staged_file_path]
+      end
+
+      it 'detects modified unstaged files' do
+        modified_unstaged_file_path = File.join(dir_with_test_data, 'modified_unstaged_file.md')
+        mod.compute_list_of_changed_files(true, dir_with_test_data).must_equal []
+        File.write(modified_unstaged_file_path, "#{ rand(1000) }")
+        mod.compute_list_of_changed_files(true, dir_with_test_data).must_equal [modified_unstaged_file_path]
+      end
+
+      it 'detects new staged files' do
+        new_staged_file_path = File.join(dir_with_test_data, 'new_staged_file.md')
+        mod.compute_list_of_changed_files(true, dir_with_test_data).must_equal []
+        File.write(new_staged_file_path, "#{ rand(1000) }")
+        `git add #{ new_staged_file_path }` # stage the file
+        mod.compute_list_of_changed_files(true, dir_with_test_data).must_equal [new_staged_file_path]
+      end
+
+      it 'detects new unstaged files' do
+        new_unstaged_file_path = File.join(dir_with_test_data, 'new_unstaged_file.md')
+        mod.compute_list_of_changed_files(true, dir_with_test_data).must_equal []
+        File.write(new_unstaged_file_path, "#{ rand(1000) }")
+        mod.compute_list_of_changed_files(true, dir_with_test_data).must_equal [new_unstaged_file_path]
+      end
+    end
+
   end
 
 end

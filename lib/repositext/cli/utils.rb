@@ -97,6 +97,7 @@ class Repositext
       # @param[Hash] options
       #     :input_is_binary to force File.binread where required
       #     :output_is_binary
+      #     :changed_only
       # @param[Proc] block A Proc that performs the desired operation on each file.
       #     Arguments to the proc are each file's name and contents.
       #     Calling block is expected to return an Array of Outcome objects, one
@@ -109,10 +110,18 @@ class Repositext
       #     block              => out_contents_proc (transforms output file contents)
       def self.process_files(file_pattern, file_filter, description, output_path_lambda, options, &block)
         with_console_output(description, file_pattern) do |counts|
+          changed_files = compute_list_of_changed_files(options[:changed_only])
           Dir.glob(file_pattern).each do |filename|
 
             if file_filter && !(file_filter === filename) # file_filter has to be LHS of `===`
-              $stderr.puts " - Skipping #{ filename }"
+              $stderr.puts " - Skipping #{ filename } - doesn't match file_filter"
+              next
+            end
+
+            if changed_files && !changed_files.any? { |changed_file_rel_path|
+              Regexp.new(changed_file_rel_path + "\\z") =~ filename
+            }
+              $stderr.puts " - Skipping #{ filename } - has no changes"
               next
             end
 
@@ -188,10 +197,18 @@ class Repositext
       #     :output_is_binary
       def self.move_files_helper(file_pattern, file_filter, output_path_lambda, description, options)
         with_console_output(description, file_pattern) do |counts|
+          changed_files = compute_list_of_changed_files(options[:changed_only])
           Dir.glob(file_pattern).each do |filename|
 
             if file_filter && !(file_filter === filename) # file_filter has to be LHS of `===`
-              $stderr.puts " - Skipping #{ filename }"
+              $stderr.puts " - Skipping #{ filename } - doesn't match file_filter"
+              next
+            end
+
+            if changed_files && !changed_files.any? { |changed_file_rel_path|
+              Regexp.new(changed_file_rel_path + "\\z") =~ filename
+            }
+              $stderr.puts " - Skipping #{ filename } - has no changes"
               next
             end
 
@@ -296,6 +313,38 @@ class Repositext
           # TODO: we may need to look at the :output_is_binary option and write
           # differently if required
           File.write(file_path, file_contents)
+        end
+      end
+
+      # Returns a list of files that git considers changed:
+      #     * modified or added
+      #     * staged or unstaged
+      # @param[Boolean] changed_only_flag
+      # @param[String, optional] limit scope to path. This is for testing.
+      # @return[Array<String>, nil]
+      def self.compute_list_of_changed_files(changed_only_flag, path = '')
+        if changed_only_flag
+          base_dir = `git rev-parse --show-toplevel`.strip
+          r = []
+          if '' == path
+            # Scope: entire git repo
+            # Add staged and unstaged modified files, and staged new files
+            r += `git diff --name-only --diff-filter=AM HEAD`.split("\n")
+            # Add unstaged new files (in working tree, not staged yet)
+            r += `git ls-files --others --exclude-standard --full-name`.split("\n")
+          else
+            # Scope: path only (good for testing)
+            # Add staged and unstaged modified files, and staged new files
+            r += `git diff --name-only --diff-filter=AM HEAD -- #{ path }`.split("\n")
+            Dir.chdir(path) do
+              # Add unstaged new files (in working tree, not staged yet)
+              r += `git ls-files --others --exclude-standard --full-name`.split("\n")
+            end
+          end
+          r = r.uniq.compact.map { |e| File.join(base_dir, e) }
+          r
+        else
+          nil
         end
       end
 
