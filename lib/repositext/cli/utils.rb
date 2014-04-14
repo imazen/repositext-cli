@@ -6,32 +6,32 @@ class Repositext
       # Utils module provides methods commonly used by the rt commands
 
       # Changes files in place, updating their contents
-      # @param: See #process_files below for param description
+      # @param: See #process_files_helper below for param description
       def self.change_files_in_place(file_pattern, file_filter, description, options, &block)
         # Use input file path
         output_path_lambda = lambda do |input_filename, output_file_attrs|
           input_filename
         end
-        process_files(
+        process_files_helper(
           file_pattern, file_filter, description, output_path_lambda, options, &block
         )
       end
 
       # Converts files from one format to another
-      # @param: See #process_files below for param description
+      # @param: See #process_files_helper below for param description
       def self.convert_files(file_pattern, file_filter, description, options, &block)
         # Change file extension only.
         output_path_lambda = lambda do |input_filename, output_file_attrs|
           replace_file_extension(input_filename, output_file_attrs[:extension])
         end
 
-        process_files(
+        process_files_helper(
           file_pattern, file_filter, description, output_path_lambda, options, &block
         )
       end
 
       # Exports files to another format and location
-      # @param: See #process_files below for param description
+      # @param: See #process_files_helper below for param description
       # @param[String] out_dir the output base directory
       def self.export_files(file_pattern, out_dir, file_filter, description, options, &block)
         # Change output file path
@@ -42,7 +42,7 @@ class Repositext
           )
         end
 
-        process_files(
+        process_files_helper(
           file_pattern, file_filter, description, output_path_lambda, options, &block
         )
       end
@@ -51,7 +51,7 @@ class Repositext
       # @param[String] input_base_dir the base_dir path
       # @param[String] input_file_pattern the input file pattern
       # @param[String] output_dir the output base directory
-      # @param: See #process_files below for param description
+      # @param: See #process_files_helper below for param description
       def self.move_files(input_base_dir, input_file_pattern, output_dir, file_filter, description, options)
         # Change output file path to destination
         output_path_lambda = lambda do |input_filename|
@@ -66,7 +66,7 @@ class Repositext
 
       # Does a dry-run of the process. Printing out all debug and logging info
       # but not saving any changes to disk.
-      # @param: See #process_files below for param description
+      # @param: See #process_files_helper below for param description
       # @param[String] out_dir the output base directory
       def self.dry_run_process(file_pattern, out_dir, file_filter, description, options, &block)
         # Always return empty string to skip writing to disk
@@ -74,7 +74,7 @@ class Repositext
           ''
         end
 
-        process_files(
+        process_files_helper(
           file_pattern, file_filter, description, output_path_lambda, options, &block
         )
       end
@@ -108,7 +108,7 @@ class Repositext
       # TODO: the following naming may reveal intent more clearly:
       #     output_path_lambda => out_filename_proc (transforms output file path)
       #     block              => out_contents_proc (transforms output file contents)
-      def self.process_files(file_pattern, file_filter, description, output_path_lambda, options, &block)
+      def self.process_files_helper(file_pattern, file_filter, description, output_path_lambda, options, &block)
         with_console_output(description, file_pattern) do |counts|
           changed_files = compute_list_of_changed_files(options[:changed_only])
           Dir.glob(file_pattern).each do |filename|
