@@ -13,7 +13,7 @@ class Repositext
           input_filename
         end
         process_files_helper(
-          file_pattern, file_filter, description, output_path_lambda, options, &block
+          file_pattern, file_filter, output_path_lambda, description, options, &block
         )
       end
 
@@ -26,36 +26,39 @@ class Repositext
         end
 
         process_files_helper(
-          file_pattern, file_filter, description, output_path_lambda, options, &block
+          file_pattern, file_filter, output_path_lambda, description, options, &block
         )
       end
 
       # Exports files to another format and location
-      # @param: See #process_files_helper below for param description
+      # @param[String] input_base_dir the base_dir path
+      # @param[String] input_file_pattern the input file pattern
       # @param[String] out_dir the output base directory
-      def self.export_files(file_pattern, out_dir, file_filter, description, options, &block)
-        # Change output file path
+      # @param: See #process_files_helper below for param description
+      def self.export_files(input_base_dir, input_file_pattern, out_dir, file_filter, description, options, &block)
+        # Change output file path to destination
         output_path_lambda = lambda do |input_filename, output_file_attrs|
-          File.join(
-            out_dir,
-            File.basename(input_filename, File.extname(input_filename)) + "." + output_file_attrs[:extension]
+          replace_file_extension(
+            input_filename.gsub(input_base_dir, out_dir),
+            output_file_attrs[:extension]
           )
         end
+        file_pattern = input_base_dir + input_file_pattern
 
         process_files_helper(
-          file_pattern, file_filter, description, output_path_lambda, options, &block
+          file_pattern, file_filter, output_path_lambda, description, options, &block
         )
       end
 
       # Moves files to another location
       # @param[String] input_base_dir the base_dir path
       # @param[String] input_file_pattern the input file pattern
-      # @param[String] output_dir the output base directory
+      # @param[String] out_dir the output base directory
       # @param: See #process_files_helper below for param description
-      def self.move_files(input_base_dir, input_file_pattern, output_dir, file_filter, description, options)
+      def self.move_files(input_base_dir, input_file_pattern, out_dir, file_filter, description, options)
         # Change output file path to destination
         output_path_lambda = lambda do |input_filename|
-          input_filename.gsub(input_base_dir, output_dir)
+          input_filename.gsub(input_base_dir, out_dir)
         end
         file_pattern = input_base_dir + input_file_pattern
 
@@ -68,14 +71,14 @@ class Repositext
       # but not saving any changes to disk.
       # @param: See #process_files_helper below for param description
       # @param[String] out_dir the output base directory
-      def self.dry_run_process(file_pattern, out_dir, file_filter, description, options, &block)
+      def self.dry_run_process(file_pattern, file_filter, out_dir, description, options, &block)
         # Always return empty string to skip writing to disk
         output_path_lambda = lambda do |input_filename, output_file_attrs|
           ''
         end
 
         process_files_helper(
-          file_pattern, file_filter, description, output_path_lambda, options, &block
+          file_pattern, file_filter, output_path_lambda, description, options, &block
         )
       end
 
@@ -90,10 +93,10 @@ class Repositext
       #     This is provided by the callling command, limiting the files to be
       #     operated on to valid file types.
       #     See here for more info on ===: http://ruby.about.com/od/control/a/The-Case-Equality-Operator.htm
-      # @param[String] description A description of the operation, used for logging.
       # @param[Proc] output_path_lambda A proc that computes the output file
       #     path as string. It is given the input file path and output file attrs.
       #     If output_path_lambda returns '' (empty string), no files will be written.
+      # @param[String] description A description of the operation, used for logging.
       # @param[Hash] options
       #     :input_is_binary to force File.binread where required
       #     :output_is_binary
@@ -108,7 +111,7 @@ class Repositext
       # TODO: the following naming may reveal intent more clearly:
       #     output_path_lambda => out_filename_proc (transforms output file path)
       #     block              => out_contents_proc (transforms output file contents)
-      def self.process_files_helper(file_pattern, file_filter, description, output_path_lambda, options, &block)
+      def self.process_files_helper(file_pattern, file_filter, output_path_lambda, description, options, &block)
         with_console_output(description, file_pattern) do |counts|
           changed_files = compute_list_of_changed_files(options[:changed_only])
           Dir.glob(file_pattern).each do |filename|
@@ -163,15 +166,16 @@ class Repositext
                     counts[:unchanged] += 1
                     $stderr.puts "    Leave as is: #{ new_path } #{ message }"
                   end
+
                   counts[:success] += 1
                 else
                   $stderr.puts "  x  Error: #{ message }"
                   counts[:errors] += 1
                 end
               end
-              $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{ e.backtrace.join("\n") })
             rescue StandardError => e
               counts[:errors] += 1
+              $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{ e.backtrace.join("\n") })
             end
             counts[:total] += 1
           end
@@ -196,6 +200,7 @@ class Repositext
       #     :input_is_binary to force File.binread where required
       #     :output_is_binary
       def self.move_files_helper(file_pattern, file_filter, output_path_lambda, description, options)
+
         with_console_output(description, file_pattern) do |counts|
           changed_files = compute_list_of_changed_files(options[:changed_only])
           Dir.glob(file_pattern).each do |filename|
@@ -216,6 +221,7 @@ class Repositext
               $stderr.puts " - Moving #{ filename }"
 
               new_path = output_path_lambda.call(filename)
+
               # new_path is either a file path or the empty string (in which
               # case we don't write anything to the file system).
               # NOTE: it's not enough to just check File.exist?(new_path) for
@@ -232,11 +238,13 @@ class Repositext
                 counts[:created] += 1
                 $stderr.puts "  * Create: #{ new_path }"
               end
+
               counts[:success] += 1
-              $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{counts[:errors] == 0 ? e.backtrace.join("\n") : ''})
             rescue StandardError => e
               counts[:errors] += 1
+              $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{ e.backtrace.join("\n") })
             end
+
             counts[:total] += 1
           end
         end

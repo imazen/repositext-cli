@@ -6,7 +6,7 @@ describe Repositext::Cli::Utils do
 
   describe 'File operation helper methods' do
 
-    let(:in_cont) { 'Input file content'}
+    let(:in_cont) { 'Input file content' }
     let(:out_cont) { 'Output file content'}
     let(:in_file_pattern) { '/directory_1/*.in' }
     let(:in_file_filter) { /\.in\z/ }
@@ -47,7 +47,7 @@ describe Repositext::Cli::Utils do
       end
 
       it 'updates existing files with new content' do
-        Dir.glob(in_file_pattern).each { |e| File.read(e).must_equal out_cont }
+        Dir.glob(in_file_pattern).all? { |e| File.read(e) == out_cont }.must_equal true
       end
 
       it 'does not create any new files' do
@@ -75,18 +75,22 @@ describe Repositext::Cli::Utils do
       end
 
       it 'new files contain updated content' do
-        Dir.glob(out_file_pattern).each { |e| File.read(e).must_equal out_cont }
+        Dir.glob(out_file_pattern).all? { |e| File.read(e) == out_cont }.must_equal true
       end
     end
 
     describe '.export_files' do
 
-      let(:out_dir) { '/directory2' }
-      let(:out_file_pattern) { "#{ out_dir }/*.out" }
+      let(:out_dir) { '/directory_2/' }
+      let(:out_file_pattern) { "#{ out_dir }*.out" }
+      let(:in_base_dir) { '/directory_1/' }
+      let(:files_only_pattern) { '*.in' } # This contains only the portion after base_dir
 
       before do
+        # Prepare output dir
+        FileUtils.mkdir('/directory_2')
         # Execute method under test
-        mod.export_files(in_file_pattern, out_dir, in_file_filter, desc, {}) do |contents, filename|
+        mod.export_files(in_base_dir, files_only_pattern, out_dir, in_file_filter, desc, {}) do |contents, filename|
           [Outcome.new(true, { :contents => out_cont, :extension => 'out' }, ['msg'])]
         end
       end
@@ -100,17 +104,47 @@ describe Repositext::Cli::Utils do
       end
 
       it 'new files contain updated content' do
-        Dir.glob(out_file_pattern).each { |e| File.read(e).must_equal out_cont }
+        Dir.glob(out_file_pattern).all? { |e| File.read(e) == out_cont }.must_equal true
+      end
+
+    end
+
+    describe '.move_files' do
+
+      let(:out_dir) { '/directory_2/' }
+      let(:out_file_pattern) { "#{ out_dir }*.in" } # extension is .in since we're just moving
+      let(:in_base_dir) { '/directory_1/' }
+      let(:in_files_only_pattern) { '*.in' } # This contains only the portion after base_dir
+
+      before do
+        # Count number of input files before we delete them
+        @in_file_count = in_file_names.size
+        # Prepare output dir
+        FileUtils.mkdir('/directory_2')
+        # Execute method under test
+        mod.move_files(in_base_dir, in_files_only_pattern, out_dir, in_file_filter, desc, {})
+      end
+
+      it 'removes existing files' do
+        Dir.glob(in_file_pattern).must_equal []
+      end
+
+      it 'creates one new file for each input file in another directory' do
+        Dir.glob(out_file_pattern).size.must_equal @in_file_count
+      end
+
+      it 'new files contain original content' do
+        Dir.glob(out_file_pattern).all? { |e| File.read(e) == in_cont }.must_equal true
       end
 
     end
 
     describe '.dry_run_process' do
 
-      let(:out_dir) { '/directory2' }
+      let(:out_dir) { '/directory_2/' }
 
       it 'does not write any new files' do
-        mod.dry_run_process(in_file_pattern, out_dir, in_file_filter, desc, {}) do |contents, filename|
+        mod.dry_run_process(in_file_pattern, in_file_filter, out_dir, desc, {}) do |contents, filename|
           [Outcome.new(true, { :contents => out_cont, :extension => 'out' }, ['msg'])]
         end
         File.directory?(out_dir).must_equal false
@@ -123,7 +157,7 @@ describe Repositext::Cli::Utils do
             [Outcome.new(true, { :contents => out_cont, :extension => 'out' }, ['msg'])]
           end
         }
-        err.must_match /\n  - Skip writing/
+        err.must_match /\n - Skipping/
       end
     end
 
@@ -142,7 +176,7 @@ describe Repositext::Cli::Utils do
 
       it 'Processes empty file set' do
         out, err = capture_io {
-          mod.process_files_helper('', '', '', output_path_lambda, {}) { '' }
+          mod.process_files_helper('', '', output_path_lambda, '', {}) { '' }
         }
         err.must_match /Finished processing 0 of 0 files/
       end
@@ -150,7 +184,7 @@ describe Repositext::Cli::Utils do
       it "skips input files that don't match the file_filter" do
         in_file_filter = /test2/
         out, err = capture_io {
-          mod.process_files_helper(in_file_pattern, in_file_filter, desc, output_path_lambda, {}) do |contents, filename|
+          mod.process_files_helper(in_file_pattern, in_file_filter, output_path_lambda, desc, {}) do |contents, filename|
             [Outcome.new(true, { :contents => out_cont, :extension => 'out' }, ['msg'])]
           end
         }
@@ -159,7 +193,7 @@ describe Repositext::Cli::Utils do
 
       it "creates new output files if they don't exist yet" do
         out, err = capture_io {
-          mod.process_files_helper(in_file_pattern, in_file_filter, desc, output_path_lambda, {}) do |contents, filename|
+          mod.process_files_helper(in_file_pattern, in_file_filter, output_path_lambda, desc, {}) do |contents, filename|
             [Outcome.new(true, { :contents => out_cont, :extension => 'out' }, ['msg'])]
           end
         }
@@ -170,11 +204,11 @@ describe Repositext::Cli::Utils do
         # First create existing output files with old content
         old_content = 'Old content'
         new_content = 'New content'
-        mod.process_files_helper(in_file_pattern, in_file_filter, desc, output_path_lambda, {}) do |contents, filename|
+        mod.process_files_helper(in_file_pattern, in_file_filter, output_path_lambda, desc, {}) do |contents, filename|
           [Outcome.new(true, { :contents => old_content, :extension => 'out' }, ['msg'])]
         end
         out, err = capture_io {
-          mod.process_files_helper(in_file_pattern, in_file_filter, desc, output_path_lambda, {}) do |contents, filename|
+          mod.process_files_helper(in_file_pattern, in_file_filter, output_path_lambda, desc, {}) do |contents, filename|
             [Outcome.new(true, { :contents => new_content, :extension => 'out' }, ['msg'])]
           end
         }
@@ -185,11 +219,11 @@ describe Repositext::Cli::Utils do
         # First create existing output files with old content
         old_content = 'Old content'
         new_content = 'New content'
-        mod.process_files_helper(in_file_pattern, in_file_filter, desc, output_path_lambda, {}) do |contents, filename|
+        mod.process_files_helper(in_file_pattern, in_file_filter, output_path_lambda, desc, {}) do |contents, filename|
           [Outcome.new(true, { :contents => old_content, :extension => 'out' }, ['msg'])]
         end
         out, err = capture_io {
-          mod.process_files_helper(in_file_pattern, in_file_filter, desc, output_path_lambda, {}) do |contents, filename|
+          mod.process_files_helper(in_file_pattern, in_file_filter, output_path_lambda, desc, {}) do |contents, filename|
             [Outcome.new(true, { :contents => old_content, :extension => 'out' }, ['msg'])]
           end
         }
@@ -198,7 +232,7 @@ describe Repositext::Cli::Utils do
 
       it "prints an error message if processing is not successful" do
         out, err = capture_io {
-          mod.process_files_helper(in_file_pattern, in_file_filter, desc, output_path_lambda, {}) do |contents, filename|
+          mod.process_files_helper(in_file_pattern, in_file_filter, output_path_lambda, desc, {}) do |contents, filename|
             [Outcome.new(false, {}, ['msg'])]
           end
         }
