@@ -21,7 +21,7 @@ class Repositext
           "Adjusting :gap_mark positions",
           options
         ) do |contents, filename|
-          outcome = Repositext::Fix::AdjustGapMarkPositions.fix(contents)
+          outcome = Repositext::Fix::AdjustGapMarkPositions.fix(contents, filename)
           [outcome]
         end
       end
@@ -42,7 +42,7 @@ class Repositext
           "Adjusting merged :record_mark positions",
           options
         ) do |contents, filename|
-          outcome = Repositext::Fix::AdjustMergedRecordMarkPositions.fix(contents)
+          outcome = Repositext::Fix::AdjustMergedRecordMarkPositions.fix(contents, filename)
           [outcome]
         end
       end
@@ -56,7 +56,7 @@ class Repositext
           "Converting abbreviations to lower case",
           options
         ) do |contents, filename|
-          outcome = Repositext::Fix::ConvertAbbreviationsToLowerCase.fix(contents)
+          outcome = Repositext::Fix::ConvertAbbreviationsToLowerCase.fix(contents, filename)
           [outcome]
         end
       end
@@ -70,7 +70,7 @@ class Repositext
           "Changing typographical characters in files",
           options
         ) do |contents, filename|
-          outcome = Repositext::Fix::ConvertFolioTypographicalChars.fix(contents)
+          outcome = Repositext::Fix::ConvertFolioTypographicalChars.fix(contents, filename)
           [outcome]
         end
       end
@@ -83,7 +83,7 @@ class Repositext
           "Removing underscores inside folio paragraph numbers",
           options
         ) do |contents, filename|
-          outcome = Repositext::Fix::RemoveUnderscoresInsideFolioParagraphNumbers.fix(contents)
+          outcome = Repositext::Fix::RemoveUnderscoresInsideFolioParagraphNumbers.fix(contents, filename)
           [outcome]
         end
       end
