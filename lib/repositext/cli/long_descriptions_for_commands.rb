@@ -88,6 +88,16 @@ class Repositext
           )
         end
 
+        def long_description_for_report
+          %(
+            Generates a report for the repository.
+
+            Available SPECs:
+
+            folio_import_warnings - summarizes Folio import warnings
+          )
+        end
+
         def long_description_for_sync
           %(
             Syncs data between different file types in /content.

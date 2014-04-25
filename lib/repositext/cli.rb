@@ -15,6 +15,7 @@ class Repositext
     include Cli::Init
     include Cli::Merge
     include Cli::Move
+    include Cli::Report
     include Cli::Sync
     include Cli::Validate
 
@@ -109,6 +110,14 @@ class Repositext
     # @param[String] command_spec Specification of the operation
     def move(command_spec)
       self.send("move_#{ command_spec }", options)
+    end
+
+
+    desc 'report SPEC', 'Generates a report'
+    long_desc long_description_for_report
+    # @param[String] command_spec Specification of the operation
+    def report(command_spec)
+      self.send("report_#{ command_spec }", options)
     end
 
 

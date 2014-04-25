@@ -67,6 +67,16 @@ class Repositext
         )
       end
 
+      # Reads files
+      # @param[String] input_base_dir the base_dir path
+      # @param[String] input_file_pattern the input file pattern
+      # @param: See #process_files_helper below for param description
+      def self.read_files(file_pattern, file_filter, description, options, &block)
+        read_files_helper(
+          file_pattern, file_filter, description, options, &block
+        )
+      end
+
       # Does a dry-run of the process. Printing out all debug and logging info
       # but not saving any changes to disk.
       # @param: See #process_files_helper below for param description
@@ -249,6 +259,62 @@ class Repositext
           end
         end
       end
+
+      # Reads files
+      # @param[String] file_pattern A Dir.glob file pattern that describes
+      #     the file set to be operated on. This is typically provided by either
+      #     Rtfile or as command line argument by the user.
+      # @param[Trequal] file_filter Each file's name (and path) is compared with
+      #     file_filter using ===. The file will be processed if the comparison
+      #     evaluates to true. file_filter can be anything that responds to
+      #     #===, e.g., a Regexp, a Proc, or a String.
+      #     This is provided by the callling command, limiting the files to be
+      #     operated on to valid file types.
+      #     See here for more info on ===: http://ruby.about.com/od/control/a/The-Case-Equality-Operator.htm
+      # @param[String] description A description of the operation, used for logging.
+      # @param[Hash] options
+      #     :input_is_binary to force File.binread where required
+      #     :output_is_binary
+      #     :changed_only
+      # @param[Proc] block A Proc that performs the desired operation on each file.
+      #     Arguments to the proc are each file's name and contents.
+      def self.read_files_helper(file_pattern, file_filter, description, options, &block)
+
+        with_console_output(description, file_pattern) do |counts|
+          changed_files = compute_list_of_changed_files(options[:changed_only])
+          Dir.glob(file_pattern).each do |filename|
+
+            if file_filter && !(file_filter === filename) # file_filter has to be LHS of `===`
+              $stderr.puts " - Skipping #{ filename } - doesn't match file_filter"
+              next
+            end
+
+            if changed_files && !changed_files.any? { |changed_file_rel_path|
+              Regexp.new(changed_file_rel_path + "\\z") =~ filename
+            }
+              $stderr.puts " - Skipping #{ filename } - has no changes"
+              next
+            end
+
+            begin
+              $stderr.puts " - Reading #{ filename }"
+              contents = if options[:input_is_binary]
+                File.binread(filename).freeze
+              else
+                File.read(filename).freeze
+              end
+              counts[:success] += 1
+              block.call(contents, filename)
+            rescue StandardError => e
+              counts[:errors] += 1
+              $stderr.puts %(  x  Error: #{ e.class.name } - #{ e.message } - #{ e.backtrace.join("\n") })
+            end
+
+            counts[:total] += 1
+          end
+        end
+      end
+
 
       # Wraps operations with log output
       # @param[String] description the text to print on the first line of console

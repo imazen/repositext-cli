@@ -25,6 +25,7 @@ require 'repositext/cli/commands/fix'
 require 'repositext/cli/commands/init'
 require 'repositext/cli/commands/merge'
 require 'repositext/cli/commands/move'
+require 'repositext/cli/commands/report'
 require 'repositext/cli/commands/sync'
 require 'repositext/cli/commands/validate'
 
