@@ -73,8 +73,6 @@ class Repositext
 
       # Specifies all shared steps that need to run after each import
       def import_shared_steps(options)
-        # TODO: this would be a lot more efficient if we processed only files
-        # that have actually changed.
         merge_record_marks_from_folio_xml_at_into_idml_at(options)
         fix_adjust_merged_record_mark_positions(options)
         fix_convert_abbreviations_to_lower_case(options) # run after merge_record_marks...
